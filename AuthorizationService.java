@@ -2,6 +2,7 @@ package org.example.authorization_service.servise;
 
 import org.example.authorization_service.exception.InvalidCredentials;
 import org.example.authorization_service.exception.UnauthorizedUser;
+import org.example.authorization_service.model.User;
 import org.example.authorization_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,20 +17,26 @@ public class AuthorizationService {
     @Autowired
     private UserRepository userRepository;
 
-    //метод принимает два параметра и возвращает список допусков, может вызвать исключение
-    public List<Authorities> getAuthorities(String user, String password) {
+    //метод принимает экземпляр класса User и возвращает список допусков, может вызвать исключение
+    public List<Authorities> getAuthorities(User user) {
+        //получаем имя пользователя из объекта User сохраняем в переменную
+        String username = user.getUser();
+        //получаем пароль из объекта User сохраняем в переменную
+        String password = user.getPassword();
+
         //если имя пользователя или пароль пустые
-        if (isEmpty(user) || isEmpty(password)) {
+        if (isEmpty(username) || isEmpty(password)) {
             //вызывается пользовательское исключение с соответствующим сообщением
             throw new InvalidCredentials("User name or password is empty");
         }
+
         //если имя и пароль правильные то в список сохраняется имя ,пароль и допуски
-        List<Authorities> userAuthorities = userRepository.getUserAuthorities(user, password);
+        List<Authorities> userAuthorities = userRepository.getUserAuthorities(username, password);
         //проверяется что список не пуст
         if (isEmpty(userAuthorities)) {
             //если условие не выполнено , то пользователь не найден ,
             // вызывается исключение с соответствующим сообщением
-            throw new UnauthorizedUser("Unknown user " + user);
+            throw new UnauthorizedUser("Unknown user " + username);
         }
         //если проверки успешны возвращается список полномочий пользователя
         return userAuthorities;
